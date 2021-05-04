@@ -1,6 +1,8 @@
 clear; clc; close all; restoredefaultpath
 
 addpath('..\external\');
+addpath('..\common\')
+addpath('..\external\topoplot_hack\')
 
 p = mfilename('fullpath');
 [~, OUT, ~] = fileparts(p);
@@ -8,7 +10,9 @@ OUT = [ OUT '\' ]; mkdir( OUT );
 
 IN = 'spatialAttention\';
 
-basicSettings
+generate_global_variables
+subject_code = generate_subject_code();
+
 SRATE_EEG = 256;
 fs = SRATE_EEG;
 spatialAttentionSettings
@@ -16,21 +20,23 @@ spatialAttentionSettings
 
 %% group effects
 
-missing = NaN(Nsub,n.cond);
-rejected = NaN(Nsub,n.cond);
+missing = NaN(number_of_subjects, n.cond);
+rejected = NaN(number_of_subjects, n.cond);
 
-ERPG = NaN( n.x, N.channels, n.cond, Nsub );
-AMPG = NaN( n2.x, N.channels, n.cond, Nsub );
+ERPG = NaN( n.x, number_of_channels, n.cond, number_of_subjects );
+AMPG = NaN( n2.x, number_of_channels, n.cond, number_of_subjects );
 
-for SUB = 1:Nsub
+for SUBJECT = 1:number_of_subjects
     
-    [~,~,STR] = subStringGen( SUB, subCode );
-    load( [ IN STR.SUB '.epoch.mat' ], 'ERP' )
+    [SESSION, PLAYER, STR] = generate_subject_string(SUBJECT, subject_code);
+    
+    STR.SUB = generate_session_string( SUBJECT );
+    load( [ IN STR.SUBJECT '.epoch.mat' ], 'ERP' )
     
 %     missing(SUB,:) = num.missing;
 %     rejected(SUB,:) = num.rejected;
     
-    ERPG(:,:,:,SUB) = ERP;
+    ERPG(:,:,:,SUBJECT) = ERP;
     
     % ---- reduced epoch
     
@@ -38,7 +44,7 @@ for SUB = 1:Nsub
     amp = abs( fft( data2use, n2.x ) )/n2.x;
     amp(2:end-1,:) = amp(2:end-1,:)*2; % double amplitudes
     
-    AMPG(:,:,:,SUB) = amp;
+    AMPG(:,:,:,SUBJECT) = amp;
     
 end
 
@@ -64,11 +70,13 @@ close all
 cond2use(1,:) = [1 3];
 cond2use(2,:) = [2 4];
 
+filenames = {'Fig. 7a.csv', 'Fig. 7b.csv'};
+
 for CC = 1:2
     
     h = figure;
     data2use = mean( spectra(:,cond2use(CC,:)),2);
-    plot(f.fft,data2use)
+    plot(f.fft, data2use)
     xlim([15 21])
     
     for HH = 1:2
@@ -80,6 +88,9 @@ for CC = 1:2
     ylabel('SSVEP Amplitude (\muV)' )
     
     saveas(h, [ OUT 'fft.publish' num2str(CC) '.eps' ], 'epsc' )
+
+    write_supplementary(filenames{CC}, 'frequency,amplitude\n', [f.fft' data2use])
+    
 end
 
 
@@ -89,7 +100,7 @@ end
 
 STR.cond2 = {'soloT', 'jointT', 'soloD', 'jointD'};
 
-close all
+dataToSave = [];
 
 for CC = 1:4
     
@@ -101,10 +112,10 @@ for CC = 1:4
         case 3
             data2use = mean( cat(1, squeeze( head(2,:,1) ), squeeze( head(1,:,2) ) ), 1);
         case 4
-            data2use = mean( cat(2, squeeze( head(2,:,3) ), squeeze( head(1,:,4) ) ), 1);
+            data2use = mean( cat(1, squeeze( head(2,:,3) ), squeeze( head(1,:,4) ) ), 1);
     end
-
-
+    
+    dataToSave(:,CC) = data2use;
     
     h = figure;
     limit = [ 0 0.82 ];
@@ -118,6 +129,13 @@ for CC = 1:4
     saveas(h, [ OUT STR.cond2{CC} '.png' ] )
     
 end
+
+columns = STR.cond2;
+rows = {chanlocs().labels}';
+data = dataToSave;
+
+write_supplementary2('Fig. 7d.mat', columns, rows, data)
+
 
 
 %% bars
@@ -204,8 +222,8 @@ STR.cond2 = {'17' '19'};
 cond2use = [1 3; 2 4];
 n.cond2 = 2;
 
-AMPM = NaN( n2.x, N.channels, n.cond2 );
-head = NaN( N.channels, n.Hz, n.cond2 );
+AMPM = NaN( n2.x, number_of_channels, n.cond2 );
+head = NaN( number_of_channels, n.Hz, n.cond2 );
 BEST = NaN( n.best, n.Hz, n.cond2 );
 
 for CC = 1:n.cond2
@@ -258,9 +276,9 @@ return
 % cond2use = [1 3; 2 4];
 % n.cond2 = 2;
 
-wAMPG = NaN( n.x, n.f, n.cond2, Nsub );
+wAMPG = NaN( n.x, n.f, n.cond2, number_of_subjects );
 
-for SUB = 1:Nsub
+for SUB = 1:number_of_subjects
     for CC = 1:n.cond2
     
         HH = CC;
@@ -315,7 +333,7 @@ saveas(h, [ OUT TIT '.png' ] )
 
 %% all wavelet
 
-for SUB = 1:Nsub
+for SUB = 1:number_of_subjects
     for CC = 1:n.cond
 
         erp = mean( ERPG(:,unique(BEST(:)),CC,SUB), 2);
@@ -419,9 +437,9 @@ end
 % cond2use = [1 3; 2 4];
 % n.cond2 = 2;
 
-wAMPGH = NaN( n.x, n.f, n.cond2, Nsub );
+wAMPGH = NaN( n.x, n.f, n.cond2, number_of_subjects );
 
-for SUB = 1:Nsub
+for SUB = 1:number_of_subjects
     for CC = 1:n.cond
     
         if ismember(CC,cond2use(1,:))

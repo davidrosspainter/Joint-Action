@@ -38,6 +38,8 @@ TIT = 'synchrony.image';
 
 limit = [ -1 +1 ] * max(abs(m(:)));
 
+labels = {'Fig. 8b.mat', 'Fig. 8c.mat'};
+
 for CC = 1:n.cond+1
     
     % ------
@@ -47,6 +49,12 @@ for CC = 1:n.cond+1
     if CC < 3
         imagesc( win.t, [], m(:,channel_order2,CC)' )
         caxis(limit)
+
+        columns = {chanlocs(channel_order2).labels};
+        rows = win.t;
+        data = m(:,channel_order2,CC);
+        write_supplementary2(labels{CC}, columns, rows, data)
+        
     else
         dm = m(:,:,2) - m(:,:,1);
         imagesc( win.t, [], dm(:,channel_order2)' )
@@ -146,6 +154,14 @@ saveas(h, [OUT 'pval.png'])
 saveas(h, [OUT 'pval.eps'], 'epsc')
 
 
+columns = {chanlocs(channel_order2).labels};
+rows = win.t;
+data = pVal2(:,channel_order2);
+write_supplementary2('Fig. 8d.mat', columns, rows, data)
+
+
+
+
 %%
 
 h = figure;
@@ -182,6 +198,12 @@ maximize
 
 saveas(h, [OUT 'topo.png'])
 saveas(h, [OUT 'topo.eps'], 'epsc')
+
+columns = {'joint minus solo'};
+rows = {chanlocs().labels}';
+data = dm(tIDX,:);
+
+write_supplementary2('Fig. 8f.mat', columns, rows, data)
 
 
 %%
@@ -273,3 +295,13 @@ linkaxes(ax,'x')
 
 saveas(h, [OUT 'TimeCourseCz.eps'], 'epsc')
 saveas(h, [OUT 'TimeCourseCz.png'], 'png')
+
+
+
+columns = {'time', 'solo', 'joint', 'joint-solo', 'significance'};
+rows = [];
+data = [win.t', obt, (win.t >= start & win.t <= stop)'];
+
+write_supplementary2('Fig. 8e.mat', columns, rows, data)
+
+

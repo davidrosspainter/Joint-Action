@@ -1,6 +1,6 @@
 %% ----- condition settings
 
-STR.cond = {'Solo' 'Joint' 'Solo-Joint'};
+STR.cond = {'Solo' 'Joint' 'Joint-Solo'};
 
 COND{1} = TRIG.task_cue(1);
 COND{2} = TRIG.task_cue(2);

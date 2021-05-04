@@ -17,7 +17,7 @@ number_of_players = 2;
 str.side = {'left', 'right'};
 str.player = {'P1', 'P2'};
 
-is_load_fresh = true;
+is_load_fresh = false;
 is_figure_visible = 'off';
 
 sessions_to_use = [6 7 8 9 10 11 12 13 14 15 16 17 18 19 21 22 23]; % exclude 2 3 5
@@ -626,7 +626,7 @@ end
 
 clear data2use M E
 close all
-h = figure('visible','off');
+h = figure('visible','on');
 hold on;
 
 col.cursor = {'r' 'b' 'm' 'c'};
@@ -656,7 +656,7 @@ for COND = 1:2
     
     axis square
     legend({'Cursor' 'Eye position'})
-    title([str.cond{COND} ' trials']);
+    title([str.COND{COND} ' trials']);
     
 end
 
@@ -664,11 +664,12 @@ suptitle( 'Distance from target centre over movement duration')
 saveas(h, [ OUT 'GRANDMEAN Distance.png' ] )
 
 
+
 %% Distance alltogether
 
 clear data2use M E
 close all
-h = figure('visible','off');
+h = figure('visible','on');
 
 col.cursor = {'r' 'b' 'm' 'c'};
 
@@ -686,9 +687,10 @@ end
 
 set(gca, 'LineWidth', 1.5, 'TickDir', 'out', 'box','off', 'FontSize', 14, 'FontName', 'Arial')
 
-boundedline((1:370)/370, M.c(:,1), E.c(:,1), 'alpha', col.cursor{1},(1:370)/370, M.c(:,2), E.c(:,2), 'alpha', col.cursor{3},...
-    (1:370)/370, M.e(:,1), E.e(:,1), 'alpha', col.cursor{2},(1:370)/370, M.e(:,2), E.e(:,2), 'alpha', col.cursor{4})
-
+boundedline(    (1:370)/370, M.c(:,1), E.c(:,1), 'alpha', col.cursor{1},...
+                (1:370)/370, M.c(:,2), E.c(:,2), 'alpha', col.cursor{3},...
+                (1:370)/370, M.e(:,1), E.e(:,1), 'alpha', col.cursor{2},...
+                (1:370)/370, M.e(:,2), E.e(:,2), 'alpha', col.cursor{4})
 
 ylim([0 8])
 xlim([0 1])
@@ -698,13 +700,17 @@ xlabel('Proportion of Movement')
 
 % axis square
 legend({'Cursor - solo' 'Cursor - joint action' 'Eye position - solo'  'Eye position - joint action'})
-
-
 suptitle( 'Distance from target centre over movement duration')
-
-
 saveas(h, [ OUT 'GRANDMEAN Distance alltogether.png' ] )
 saveas(h, [ OUT 'GRANDMEAN Distance alltogether.eps' ], 'epsc' )
+
+columns = { 'cursor_solo_mean', 'cursor_joint_mean', 'gaze_solo_mean', 'gaze_joint_mean', ...
+            'cursor_solo_SE', 'cursor_joint_SE', 'gaze_solo_SE', 'gaze_joint_SE'};
+        
+rows = (1:370)/370;
+data = [M.c, M.e, E.c, E.e];
+
+write_supplementary2('Fig. 4e.mat', columns, rows, data)
 
 
 %% grand mean trajectories

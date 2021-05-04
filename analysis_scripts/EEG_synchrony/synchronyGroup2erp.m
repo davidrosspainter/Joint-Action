@@ -18,7 +18,7 @@ addpath('..\external\morlet_transform_hack')
 addpath(genpath('..\external\kakearney-boundedline-pkg-50f7e4b'))
 addpath(genpath('..\external\'))
 
-is_load_fresh = true;
+is_load_fresh = false;
 
 generate_global_variables
 synchrony_settings
@@ -199,9 +199,18 @@ colorbar
 saveas(h, [OUT 'wavelet.eps'],'epsc')
 
 
+columns = f.wavelet;
+rows = t;
+data = A;
+
+write_supplementary2('Fig. 8i.mat', columns, rows, data)
+
+
 %% topos
 
 h = figure;
+
+data = [];
 
 for PP = 4:6
     switch PP
@@ -217,6 +226,8 @@ for PP = 4:6
     topoplot( mean( ERPM(idx,:,:),3), chanlocs, 'maplimits', dd )
     colorbar
 
+    data(:,PP-3) = mean( ERPM(idx,:,:),3);
+    
     %plot( t,  ERPM(:,ismember(lab,'POz'),2) )
 end
 
@@ -228,11 +239,20 @@ saveas(h,[OUT 'topos.eps'],'epsc')
 saveas(h,[OUT 'topos.png'],'png')
 
 
+
+rows = {chanlocs().labels};
+columns = {'P1', 'N2', 'P3'};
+write_supplementary2('Fig. 8h - inset.mat', columns, rows, data)
+
+
 %% figure plot
 
 col = {'r' 'b'};
 
 h = figure;
+
+means = [];
+SEs = [];
 
 for CC = 1:2
     data2use = squeeze( ERP(:,ismember(lab,'Cz'),CC,:) )';
@@ -240,6 +260,9 @@ for CC = 1:2
     M = mean(data2use);
     E = ws_bars(data2use);
 
+    means(:,CC) = M;
+    SEs(:,CC) = E;
+    
     boundedline(t, M',E', col{CC})
     xlim([min(t) max(t)])
 end
@@ -250,6 +273,12 @@ legend({'Solo' 'Joint'})
 set(gca,'tickdir','out')
 xlabel('Time (s)')
 ylabel('EEG Amplitude (uV)')
+
+
+data = [means, SEs];
+rows = t;
+columns = {'solo_mean', 'joint_mean', 'solo_SE', 'joint_SE'};
+write_supplementary2('Fig. 8h.mat', columns, rows, data)
 
 saveas(h, [OUT 'erp.eps'], 'epsc' )
 

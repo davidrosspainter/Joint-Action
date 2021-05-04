@@ -21,6 +21,7 @@ OUT = [ OUT '\' ]; mkdir( OUT );
 IN = 'task_cue2\';
 
 
+
 %% group effects
 
 missing = NaN(number_of_subjects,n.cond);
@@ -32,7 +33,7 @@ AMPG = NaN( n.x, number_of_channels, n.cond, number_of_subjects );
 for SUB = 1:number_of_subjects
     
     [SESSION,PLAYER,STR] = generate_subject_string( SUB, generate_subject_code() );
-    load( [ IN STR.SUBJECT '.ERP.AMP.mat' ] )
+    load( [ IN STR.SUBJECT '.ERP.AMP.mat' ] ) % load STR.cond incorrectly
     
     missing(SUB,:) = num.missing;
     rejected(SUB,:) = num.rejected;
@@ -41,6 +42,8 @@ for SUB = 1:number_of_subjects
     AMPG(:,:,:,SUB) = AMP;
     
 end
+
+taskCueSettings % fix to incorrect loading
 
 
 %%
@@ -196,15 +199,25 @@ saveas(h, [ OUT TIT '.eps' ], 'epsc' )
 %% fft
 
 h = figure;
+
+subplot(2,1,1)
 plot(f.fft, spectrumG)
-xlim( [realHz-5 realHz+5] )
-%xlim([2 22] )
-
+xlim( [2 20] )
 line([Hz Hz], get(gca,'ylim'), 'color', 'r')
-
 xlabel( 'Frequency (Hz)' )
 ylabel( 'FFT Amp. (\muV)' )
 set(gca,'tickdir','out')
+
+write_supplementary('Fig. 6a - upper.csv', 'frequency,amplitude\n', [f.fft' spectrumG])
+
+subplot(2,1,2)
+plot(t, mean(erpG,2))
+%xlim( [lim.s(1) lim.s(2)] )
+xlabel( 'Time (s)' )
+ylabel( 'EEG Amp. (\muV)' )
+set(gca,'tickdir','out')
+
+write_supplementary('Fig. 6a - lower.csv', 'time,amplitude\n', [t' mean(erpG,2)])
 
 saveas(h, [ OUT 'fft.publish.eps' ], 'epsc' )
 
@@ -277,6 +290,8 @@ for CC = 3:4
         %colormap(parula)
         colorbar
         
+        write_supplementary2('Fig. 6b - lower.mat', f.wavelet', t', head')
+        
     else
         
         
@@ -287,9 +302,10 @@ for CC = 3:4
         
        
         colormap(flipud(hot(1024)))
-        
+        write_supplementary2('Fig. 6b - upper.mat', f.wavelet', t', head')
         
     end
+    
     
     
     caxis
@@ -300,7 +316,7 @@ for CC = 3:4
     set(get(hc,'title'),'string','\muV');
     set(gca,'tickdir','out')
     
-     saveas(h, [ OUT STR.cond{CC} '.newWaves.png' ] )
+    saveas(h, [ OUT STR.cond{CC} '.newWaves.png' ] )
     
 end
 
@@ -375,6 +391,8 @@ data2use = squeeze( mean( wHead(i,:,:,:), 4) );
 
 %%
 
+data = [];
+
 for CC = 3:4
     
     h = figure;
@@ -386,6 +404,8 @@ for CC = 3:4
         
         topoplot( head, chanlocs, 'maplimits', [-1 +1].*max(abs(head)), 'colormap', colormap('jet'), 'conv', 'on', 'shading', 'interp' );
         colormap(kindlmann)
+        
+         
     else
         head = mean( data2use, 2);
         
@@ -395,6 +415,8 @@ for CC = 3:4
         mean(head(BEST))
     end
 
+    data(:,CC-2) = head;
+    
     caxis()
     
     colorbar
@@ -404,6 +426,10 @@ for CC = 3:4
 end
 
 
+columns = {STR.cond{3}, STR.cond{4}};
+rows = {chanlocs().labels}';
+
+write_supplementary2('Fig. 6d.mat', columns, rows, data)
 
 
 
@@ -428,6 +454,8 @@ saveas(h,[ OUT  'fft.eps' ], 'epsc' )
 
 %%
 h = figure;
+
+addpath('..//external/Colormaps//')
 
 % ----- topoplot
 
@@ -508,5 +536,7 @@ saveas(h, [ OUT TIT '.png' ] )
 
 
 %%
+
+return
 
 task_cue_perm_plot

@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pickle
 from PIL import Image
+from enum import Enum
 
 
 def set_output_directory(output_directory):
@@ -18,12 +19,52 @@ def print_stars(n=100):
     print(get_stars(n))
 
 
+colors = np.array([[0.5, 0.25, 0.6],
+                   [1, 0, 1],
+                   [1, 0, 0],
+                   [1, 0.36, 0],
+                   [1, 1, 0],
+                   [0, 1, 0],
+                   [0, 1, 1],
+                   [0, 0, 1]])
+
+
 class Labels:
     player = ['P1', 'P2']
     control = ['Solo', 'Joint']
+    control2 = ['HP Solo', 'LP Solo', 'Joint']
     epoch = ['Pre-Action', 'Action']
     session = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19', 'S20']
     session2 = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+    visibility = ['Visible', 'Invisible']
+    accuracy = ['Correct', 'Error']
+    relevance = ['Target', 'Distractor']
+
+
+class Control(Enum):
+    Solo = 0
+    Joint = 1
+
+
+class Control2(Enum):
+    HP_Solo = 0
+    LP_Solo = 1
+    Joint = 2
+
+
+class Visibility(Enum):
+    Visible = 0
+    Invisible = 1
+
+
+class Accuracy(Enum):
+    Correct = 0
+    Error = 1
+
+
+class Relevance(Enum):
+    Target = 0
+    Distractor = 1
 
 
 class Number:
@@ -48,6 +89,8 @@ class Number:
 
     cursors = 3
     target_positions = 8
+
+    frames = 1008
 
 
 class Trigger:

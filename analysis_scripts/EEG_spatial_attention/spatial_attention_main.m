@@ -11,7 +11,7 @@ tt = tic;
 for SUB = 1:40
     
     disp('*****************************************'); disp(SUB); ss = tic;
-	spatial_attention(SUB) % adjusted with respect to movement offset
+	spatialAttention(SUB) % adjusted with respect to movement offset
     toc(ss)
     
 end
